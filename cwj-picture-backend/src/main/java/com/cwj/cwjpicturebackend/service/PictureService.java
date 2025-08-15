@@ -10,6 +10,7 @@ import com.cwj.cwjpicturebackend.model.dto.picture.PictureUploadRequest;
 import com.cwj.cwjpicturebackend.model.entity.Picture;
 import com.cwj.cwjpicturebackend.model.entity.User;
 import com.cwj.cwjpicturebackend.model.vo.PictureVO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -89,4 +90,11 @@ public interface PictureService extends IService<Picture> {
      */
     Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
 
+    /**
+     * 清除图片
+     *
+     * @param oldPicture
+     */
+    @Async
+    void clearPictureFile(Picture oldPicture);
 }

@@ -3,14 +3,17 @@ package com.cwj.cwjpicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cwj.cwjpicturebackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.cwj.cwjpicturebackend.model.dto.picture.*;
 import com.cwj.cwjpicturebackend.model.entity.Picture;
 import com.cwj.cwjpicturebackend.model.entity.User;
 import com.cwj.cwjpicturebackend.model.vo.PictureVO;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author eveni
@@ -117,4 +120,24 @@ public interface PictureService extends IService<Picture> {
      * @param picture
      */
     void checkPictureAuth(User loginUser, Picture picture);
+
+    List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+    /**
+     * 创建扩图任务
+     *
+     * @param createPictureOutPaintingTaskRequest
+     * @param loginUser
+     * @return
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
+
+    /**
+     * 批量编辑图片
+     *
+     * @param pictureEditByBatchRequest
+     * @param loginUser
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
 }

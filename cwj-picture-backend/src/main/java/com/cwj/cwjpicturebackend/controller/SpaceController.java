@@ -9,6 +9,7 @@ import com.cwj.cwjpicturebackend.constant.UserConstant;
 import com.cwj.cwjpicturebackend.exception.BusinessException;
 import com.cwj.cwjpicturebackend.exception.ErrorCode;
 import com.cwj.cwjpicturebackend.exception.ThrowUtils;
+import com.cwj.cwjpicturebackend.manager.auth.SpaceUserAuthManager;
 import com.cwj.cwjpicturebackend.model.dto.space.*;
 import com.cwj.cwjpicturebackend.model.entity.Space;
 import com.cwj.cwjpicturebackend.model.entity.User;
@@ -18,6 +19,7 @@ import com.cwj.cwjpicturebackend.service.SpaceService;
 import com.cwj.cwjpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,8 +39,10 @@ public class SpaceController {
 
      @Resource
      private SpaceService spaceService;
+    @Autowired
+    private SpaceUserAuthManager spaceUserAuthManager;
 
-     @PostMapping("/add")
+    @PostMapping("/add")
      public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
          ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR);
          User loginUser = userService.getLoginUser(request);
@@ -116,8 +120,12 @@ public class SpaceController {
         // 查询数据库
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
-        return ResultUtils.success(spaceService.getSpaceVO(space, request));
+        return ResultUtils.success(spaceVO);
     }
 
     /**

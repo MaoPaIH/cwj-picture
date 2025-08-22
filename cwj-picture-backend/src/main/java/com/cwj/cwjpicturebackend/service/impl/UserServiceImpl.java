@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cwj.cwjpicturebackend.constant.UserConstant;
 import com.cwj.cwjpicturebackend.exception.BusinessException;
 import com.cwj.cwjpicturebackend.exception.ErrorCode;
+import com.cwj.cwjpicturebackend.manager.auth.StpKit;
 import com.cwj.cwjpicturebackend.model.dto.user.UserLoginRequest;
 import com.cwj.cwjpicturebackend.model.dto.user.UserQueryRequest;
 import com.cwj.cwjpicturebackend.model.dto.user.UserRegisterRequest;
@@ -26,6 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.cwj.cwjpicturebackend.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * @author eveni
@@ -110,7 +113,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
         }
         // 4、保存用户登录状态
-        request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
+        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 记录用户登录态到 Sa-token，便于空间鉴权时使用
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
         return this.getLoginUserVO(user);
     }
 
@@ -123,7 +129,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 判断是否登录
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
         if (currentUser == null || currentUser.getId() == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
@@ -131,7 +137,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 从数据库查询，避免缓存误判
         Long userId = currentUser.getId();
         currentUser = this.getById(userId);
-        request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, currentUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, currentUser);
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
@@ -147,12 +153,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean userLogout(HttpServletRequest request) {
         // 判断是否登录
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         if (userObj == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
         // 移除登录态
-        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
     }
 

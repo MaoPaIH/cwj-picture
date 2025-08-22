@@ -33,6 +33,34 @@ spring:
     username: root
     password: root
 
+  # 空间图片分表
+  shardingsphere:
+    datasource:
+      names: cwj_picture
+      yu_picture:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/cwj_picture
+        username: root
+        password: root
+    rules:
+      sharding:
+        tables:
+          picture:
+            actual-data-nodes: cwj_picture.picture  # 动态分表
+            table-strategy:
+              standard:
+                sharding-column: spaceId
+                sharding-algorithm-name: picture_sharding_algorithm  # 使用自定义分片算法
+        sharding-algorithms:
+          picture_sharding_algorithm:
+            type: CLASS_BASED
+            props:
+              strategy: standard
+              algorithmClassName: com.cwj.cwjcturebackend.manager.sharding.PictureShardingAlgorithm
+    props:
+      sql-show: true
+
 # My-batis 配置
 mybatis-plus:
   configuration:
